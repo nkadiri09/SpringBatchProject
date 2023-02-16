@@ -1,5 +1,6 @@
 package com.infybuzz.app.config;
 
+import com.infybuzz.app.listner.FirstJobListener;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepContribution;
@@ -25,12 +26,17 @@ public class SampleJob {
 	@Autowired
 	private SecondTask secondTask;
 
+	@Autowired
+	private FirstJobListener firstJobListener;
+
 	@Bean
 	public Job firstJob() {
 		return jobBuilderFactory.get("First Job")
 				.incrementer(new RunIdIncrementer())
 				.start(firstStep())
 				.next(secondStep())
+				// Adding listener
+				.listener(firstJobListener)
 				.build();
 	}
 
