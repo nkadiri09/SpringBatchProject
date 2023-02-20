@@ -2,6 +2,9 @@ package com.infybuzz.app.config;
 
 import com.infybuzz.app.listener.FirstJobListener;
 import com.infybuzz.app.listener.FirstStepListener;
+import com.infybuzz.app.processor.FirstItemProcessor;
+import com.infybuzz.app.reader.FirstItemReader;
+import com.infybuzz.app.writer.FirstItemWriter;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepContribution;
@@ -32,11 +35,21 @@ public class SampleJob {
 	@Autowired
 	private FirstStepListener firstStepListener;
 
+	@Autowired
+	private FirstItemReader itemReader;
+
+	@Autowired
+	private FirstItemProcessor itemProcessor;
+
+	@Autowired
+	private FirstItemWriter itemWriter;
+
 	@Bean
 	public Job firstJob() {
 		return jobBuilderFactory.get("First Job")
-				.start(firstStep())
-				.next(secondStep()).listener(firstJobListener)
+				.start(chunkOrientedStep())
+				//.next(secondStep())
+				//.listener(firstJobListener)
 				.build();
 	}
 
@@ -50,6 +63,16 @@ public class SampleJob {
 	private Step secondStep(){
 		return stepBuilderFactory.get("Second Step")
 				.tasklet(secondTask)
+				.build();
+
+	}
+
+	private Step chunkOrientedStep(){
+		return stepBuilderFactory.get("Chunk Oriented Step")
+				.<Integer, Long> chunk(2)
+				.reader(itemReader)
+				.processor(itemProcessor)
+				.writer(itemWriter)
 				.build();
 
 	}
